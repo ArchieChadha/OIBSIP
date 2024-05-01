@@ -1,0 +1,43 @@
+import java.util. Random;
+import java.util.*;
+
+public class NumberGuessingGame {
+    public static void main(String[] args) {
+
+Scanner sc = new Scanner(System.in);
+  Random random = new Random();
+
+    int score = 0;
+     int attempts = 0;
+
+for (int i = 1; i <= 3; i++) {
+   int generatedNumber = random.nextInt(100) + 1;
+     System.out.println("Round " + 1 + ":");
+     System.out.println("Guess the number between 1 and 100. ");
+
+       while (attempts < 5) {
+         System.out.print("Attempt " + (attempts + 1) + ":  ");
+         int userGuess = sc.nextInt();
+          attempts++;
+
+          if (userGuess == generatedNumber) {
+              System.out.println("Congratulations! You guessed the number correctly.");
+               score += 10 - attempts;
+                 break;
+                } 
+        else if (userGuess < generatedNumber) {
+                    System.out.println("Try a higher number.");
+                } 
+         else {
+               System.out.println("Try a Lower number.");
+                }
+            }
+            attempts = 0;
+            System.out.println("Your score for this round is: " + score);
+            System.out.println();
+        }
+
+        System.out.println("Your total score is:" + score);
+        sc.close();
+    }
+}
