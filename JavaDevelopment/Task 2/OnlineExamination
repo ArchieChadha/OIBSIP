@@ -1,0 +1,271 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class OnlineExam extends Frame implements ActionListener {
+    TextField usernameField, passwordField, newUsernameField, newPasswordField;
+    Button loginBtn, updateBtn, submitBtn, updateProfileBtn;
+    Label userLabel, passLabel, messageLabel, questionLabel, timerLabel;
+    TextArea questionArea, messageArea;
+    CheckboxGroup answerGroup;
+    Checkbox[] options;
+    int currentQuestionIndex = 0;
+    int timeLeft = 300; // 5 minutes in seconds
+    boolean timerActive = false;
+    boolean sessionActive = false;
+
+    public OnlineExam() {
+        setTitle("Online Examination");
+        setSize(800, 600);
+        setLayout(null);
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                dispose();
+            }
+        });
+
+        userLabel = new Label("Username:");
+        userLabel.setBounds(50, 50, 80, 20);
+        add(userLabel);
+
+        usernameField = new TextField();
+        usernameField.setBounds(150, 50, 150, 20);
+        add(usernameField);
+
+        passLabel = new Label("Password:");
+        passLabel.setBounds(50, 100, 80, 20);
+        add(passLabel);
+
+        passwordField = new TextField();
+        passwordField.setBounds(150, 100, 150, 20);
+        passwordField.setEchoChar('*');
+        add(passwordField);
+
+        loginBtn = new Button("Login");
+        loginBtn.setBounds(150, 150, 80, 30);
+        loginBtn.addActionListener(this);
+        add(loginBtn);
+
+        updateBtn = new Button("Update Profile");
+        updateBtn.setBounds(50, 200, 120, 30);
+        updateBtn.addActionListener(this);
+        add(updateBtn);
+
+        messageLabel = new Label();
+        messageLabel.setBounds(50, 250, 400, 20);
+        add(messageLabel);
+
+        questionLabel = new Label();
+        questionLabel.setBounds(50, 300, 500, 20);
+        add(questionLabel);
+
+        answerGroup = new CheckboxGroup();
+        options = new Checkbox[4];
+        for (int i = 0; i < 4; i++) {
+            options[i] = new Checkbox();
+            options[i].setCheckboxGroup(answerGroup);
+            add(options[i]);
+        }
+
+        submitBtn = new Button("Submit");
+        submitBtn.setBounds(300, 500, 120, 30);
+        submitBtn.addActionListener(this);
+        add(submitBtn);
+
+        questionArea = new TextArea();
+        questionArea.setBounds(50, 350, 700, 120);
+        add(questionArea);
+
+        messageArea = new TextArea();
+        messageArea.setBounds(50, 550, 700, 20);
+        add(messageArea);
+
+        timerLabel = new Label();
+        timerLabel.setBounds(650, 50, 100, 20);
+        add(timerLabel);
+
+        newUsernameField = new TextField();
+        newUsernameField.setBounds(200, 250, 150, 20);
+        add(newUsernameField);
+
+        newPasswordField = new TextField();
+        newPasswordField.setBounds(200, 300, 150, 20);
+        newPasswordField.setEchoChar('*');
+        add(newPasswordField);
+
+        updateProfileBtn = new Button("Update");
+        updateProfileBtn.setBounds(200, 350, 80, 30);
+        updateProfileBtn.addActionListener(this);
+        add(updateProfileBtn);
+    }
+
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == loginBtn) {
+            String user = usernameField.getText();
+            String pass = passwordField.getText();
+            if (user.equals("Archie_Chadha") && pass.equals("password")) {
+                sessionActive = true;
+                startExam();
+            } else {
+                messageLabel.setText("Invalid Credentials, Update Profile");
+                showUpdateProfileFields();
+            }
+        } else if (ae.getSource() == updateBtn) {
+            showUpdateProfileFields();
+        } else if (ae.getSource() == submitBtn) {
+            if (currentQuestionIndex == 4) {
+                submitExam();
+            } else {
+                saveAnswerAndNext();
+            }
+        } else if (ae.getSource() == updateProfileBtn) {
+            updateProfile();
+            startExam();
+        }
+    }
+
+    private void showUpdateProfileFields() {
+        removeQuestionComponents(); // Remove question-related components if present
+        usernameField.setVisible(true);
+        passwordField.setVisible(true);
+        loginBtn.setVisible(false);
+        updateBtn.setVisible(true);
+
+        Label newUsernameLabel = new Label("New Username:");
+        newUsernameLabel.setBounds(50, 250, 100, 20);
+        add(newUsernameLabel);
+
+        newUsernameField = new TextField();
+        newUsernameField.setBounds(200, 250, 150, 20);
+        add(newUsernameField);
+
+        Label newPasswordLabel = new Label("New Password:");
+        newPasswordLabel.setBounds(50, 300, 100, 20);
+        add(newPasswordLabel);
+
+        newPasswordField = new TextField();
+        newPasswordField.setBounds(200, 300, 150, 20);
+        newPasswordField.setEchoChar('*');
+        add(newPasswordField);
+
+        Button updateProfileBtn = new Button("Update");
+        updateProfileBtn.setBounds(200, 350, 80, 30);
+        updateProfileBtn.addActionListener(this);
+        add(updateProfileBtn);
+
+        updateProfile();}
+    private void startExam() {
+        usernameField.setVisible(false);
+        passwordField.setVisible(false);
+        loginBtn.setVisible(false);
+        updateBtn.setVisible(false);
+        displayQuestion();
+        startTimer();
+    }
+
+    private void displayQuestion() {
+        questionLabel.setText("Q" + (currentQuestionIndex + 1) + ". " + getQuestionText(currentQuestionIndex));
+        questionLabel.setVisible(true);
+
+        String[] optionsText = getOptions(currentQuestionIndex);
+        for (int i = 0; i < 4; i++) {
+            options[i].setLabel(optionsText[i]);
+            options[i].setBounds(50, 350 + i * 30, 700, 20);
+            options[i].setVisible(true);
+        }
+
+        if (currentQuestionIndex == 4) {
+            submitBtn.setLabel("Submit");
+        } else {
+            submitBtn.setLabel("Save and Next");
+        }
+        submitBtn.setBounds(300, 500, 120, 30);
+        submitBtn.setVisible(true);
+    }
+
+    private String getQuestionText(int index) {
+        String[] questions = {
+                "What is the entry point of a program in Java?",
+                "Which class in Java is used to take input from the user?",
+                "Which of these components are used in a Java program for compilation and debugging?",
+                "An expression consists of int, double, float, Select the data type of entire expression?",
+                "Which of the following operators can operate on a boolean variable?\n"
+        };
+        return questions[index];
+    }
+
+    private String[] getOptions(int index) {
+        String[][] options = {
+                {"main() method", "The first line of code", "Last line of code", "main class"},
+                {"Input", "Scanner", "Applier", "None of these"},
+                {"JVM", "JRE", "JDK", "JIT"},
+                {"float", "double", "int", "long"},
+                {"&&", "=", "=>", "+="}
+        };
+        return options[index];
+    }
+
+    private void saveAnswerAndNext() {
+        Checkbox selected = answerGroup.getSelectedCheckbox();
+        if (selected != null) {
+            // Save the selected answer
+            // Proceed to the next question
+            currentQuestionIndex++;
+            displayQuestion();
+        } else {
+            messageArea.setText("Please select an answer before proceeding.");
+        }
+    }
+
+    private void submitExam() {
+        // Submit the exam and display the result
+        messageArea.setText("Exam Submitted Successfully! Logging out...");
+        stopTimer();
+    }
+
+    private void startTimer() {
+        Thread timerThread = new Thread(() -> {
+            while (timeLeft > 0 && timerActive) {
+                int minutes = timeLeft / 60;
+                int seconds = timeLeft % 60;
+                timerLabel.setText("Time Left: " + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                timeLeft--;
+            }
+            if (timeLeft == 0 && timerActive) {
+                submitExam();
+            }
+        });
+        timerThread.start();
+        timerActive = true;
+    }
+
+    private void stopTimer() {
+        removeQuestionComponents();
+    timerActive = false;
+    }
+
+    private void updateProfile() {
+        String newUsername = newUsernameField.getText();
+        String newPassword = newPasswordField.getText();
+
+        //  update profile details
+        System.out.println("New Username: " + newUsername);
+        System.out.println("New Password: " + newPassword);
+        }
+    private void removeQuestionComponents() {
+        questionLabel.setVisible(false);
+        for (Checkbox option : options) {
+            option.setVisible(false);
+        }
+        submitBtn.setVisible(false);
+    }
+
+    public static void main(String[] args) {
+        OnlineExam onlineExam = new OnlineExam();
+        onlineExam.setVisible(true);
+    }
+}
